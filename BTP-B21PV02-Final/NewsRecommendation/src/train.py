@@ -169,6 +169,18 @@ def train():
             tqdm.write(
                 f"Training data exhausted for {exhaustion_count} times after {i} batches, reuse the dataset."
             )
+            torch.save(
+                {
+                    'model_state_dict': (model if model_name != 'Exp1'
+                                         else models[0]).state_dict(),
+                    'optimizer_state_dict':
+                        (optimizer if model_name != 'Exp1' else
+                         optimizers[0]).state_dict(),
+                    'step':
+                        step,
+                    'early_stop_value':
+                        -val_auc
+                }, f"./checkpoint/{model_name}/ckpt-epoch-{exhaustion_count}.pth")
             dataloader = iter(
                 DataLoader(dataset,
                            batch_size=config.batch_size,

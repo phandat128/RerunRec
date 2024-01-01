@@ -192,7 +192,8 @@ def evaluate(model, directory, num_workers, max_count=sys.maxsize):
 
     news2vector = {}
     for minibatch in tqdm(news_dataloader,
-                          desc="Calculating vectors for news"):
+                          desc="Calculating vectors for news",
+                          position=0, leave=True):
         news_ids = minibatch["id"]
         if any(id not in news2vector for id in news_ids):
             news_vector = model.get_news_vector(minibatch)
@@ -214,7 +215,8 @@ def evaluate(model, directory, num_workers, max_count=sys.maxsize):
 
     user2vector = {}
     for minibatch in tqdm(user_dataloader,
-                          desc="Calculating vectors for users"):
+                          desc="Calculating vectors for users",
+                          position=0, leave=True):
         user_strings = minibatch["clicked_news_string"]
         if any(user_string not in user2vector for user_string in user_strings):
             clicked_news_vector = torch.stack([
@@ -243,7 +245,8 @@ def evaluate(model, directory, num_workers, max_count=sys.maxsize):
     tasks = []
 
     for minibatch in tqdm(behaviors_dataloader,
-                          desc="Calculating probabilities"):
+                          desc="Calculating probabilities",
+                          position=0, leave=True):
         count += 1
         if count == max_count:
             break
