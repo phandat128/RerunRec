@@ -20,8 +20,8 @@ class NewsEncoder(nn.Module):
         self.ner_classifier = nn.Linear(bert_config.hidden_size, config.num_entities)
         self.ner_loss_fn = nn.CrossEntropyLoss()
 
-    def forward(self, input_ids, attention_mask, token_type_ids, category_labels, ner_labels):
-        outputs = self.bert_model(input_ids, attention_mask, token_type_ids)
+    def forward(self, title_ids, attention_mask, token_type_ids, category_labels, ner_labels):
+        outputs = self.bert_model(title_ids, attention_mask, token_type_ids)
 
         cls_output = outputs[0][:, 0, :]
         pooled_output = self.category_dropout(outputs[1])

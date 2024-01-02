@@ -2,7 +2,7 @@ import torch.nn as nn
 
 from transformers import BertConfig
 
-from ...model.general.attention.additive import AdditiveAttention
+from model.general.attention.additive import AdditiveAttention
 
 
 class UserEncoder(nn.Module):
