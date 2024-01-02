@@ -3,7 +3,7 @@ import os
 model_name = os.environ['MODEL_NAME'] if 'MODEL_NAME' in os.environ else 'NRMS'
 # Currently included model
 assert model_name in [
-    'NRMS', 'NAML', 'LSTUR', 'DKN', 'HiFiArk', 'TANR', 'Exp1'
+    'NRMS', 'NAML', 'LSTUR', 'DKN', 'HiFiArk', 'TANR', 'Exp1', 'MTRec'
 ]
 #model_name = 'NAML' #config for NAML
 class BaseConfig():
@@ -43,6 +43,11 @@ class MTRecConfig(BaseConfig):
         "news": ['title'],
         "record": []
     }
+    bert_model = 'bert-base-uncased',
+    classifier_dropout = 0.2,
+    num_entities = 3,
+    negative_sampling_ratio = 4
+
 
 
 class NRMSConfig(BaseConfig):
