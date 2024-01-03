@@ -59,9 +59,8 @@ class NewsDataset(Dataset):
             usecols=['id'] + config.dataset_attributes['news'],
             converters={
                 attribute: literal_eval
-                for attribute in set(config.dataset_attributes['news']) & set([
-                    'title', 'abstract', 'title_entities', 'abstract_entities'
-                ])
+                for attribute in set(config.dataset_attributes['news']) & {'title', 'abstract', 'title_entities',
+                                                                           'abstract_entities'}
             })
         self.news2dict = self.news_parsed.to_dict('index')
         for key1 in self.news2dict.keys():
