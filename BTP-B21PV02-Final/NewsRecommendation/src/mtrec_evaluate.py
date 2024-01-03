@@ -281,14 +281,14 @@ if __name__ == '__main__':
     # since it will be loaded from checkpoint later
     model = Model(config).to(device)
 
-    """from train import latest_checkpoint  # Avoid circular imports
+    from train import latest_checkpoint  # Avoid circular imports
     checkpoint_path = latest_checkpoint(path.join('./checkpoint', model_name))
     if checkpoint_path is None:
         print('No checkpoint file found!')
         exit()
     print(f"Load saved parameters in {checkpoint_path}")
     checkpoint = torch.load(checkpoint_path)
-    model.load_state_dict(checkpoint['model_state_dict'])"""
+    model.load_state_dict(checkpoint['model_state_dict'])
 
     model.eval()
     auc, mrr, ndcg5, ndcg10 = evaluate(model, 'src/data/test',

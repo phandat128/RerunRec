@@ -13,6 +13,7 @@ from pathlib import Path
 from evaluate import evaluate
 import importlib
 import datetime
+import mtrec_evaluate
 
 try:
     Model = getattr(importlib.import_module(f"model.{model_name}"), model_name)
@@ -187,7 +188,7 @@ def train():
                         step,
                     'early_stop_value':
                         -val_auc
-                }, f"./checkpoint/{model_name}/ckpt-epoch-{exhaustion_count}.pth")
+                }, f"./checkpoint/{model_name}/ckpt-{step}.pth")
             dataloader = iter(
                 DataLoader(dataset,
                            batch_size=config.batch_size,
@@ -270,9 +271,14 @@ def train():
 
         if i % config.num_batches_validate == 0:
             (model if model_name != 'Exp1' else models[0]).eval()
-            val_auc, val_mrr, val_ndcg5, val_ndcg10 = evaluate(
-                model if model_name != 'Exp1' else models[0], './data/val',
-                config.num_workers, 200000)
+            if model_name == 'MTRec':
+                val_auc, val_mrr, val_ndcg5, val_ndcg10 = mtrec_evaluate.evaluate(
+                    model if model_name != 'Exp1' else models[0], 'src/data/val',
+                    config.num_workers, 200000)
+            else:
+                val_auc, val_mrr, val_ndcg5, val_ndcg10 = evaluate(
+                    model if model_name != 'Exp1' else models[0], 'src/data/val',
+                    config.num_workers, 200000)
             (model if model_name != 'Exp1' else models[0]).train()
             writer.add_scalar('Validation/AUC', val_auc, step)
             writer.add_scalar('Validation/MRR', val_mrr, step)
@@ -314,7 +320,7 @@ def train():
                 step,
             'early_stop_value':
                 -val_auc
-        }, f"./checkpoint/{model_name}/ckpt-epoch-{exhaustion_count + 1}.pth")
+        }, f"./checkpoint/{model_name}/ckpt-{step}.pth")
 
 
 def time_since(since):
