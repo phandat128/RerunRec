@@ -15,10 +15,12 @@ class NewsEncoder(nn.Module):
         self.category_dropout = nn.Dropout(config.classifier_dropout)
         self.category_classifier = nn.Linear(bert_config.hidden_size, config.num_categories)
         self.category_loss_fn = nn.CrossEntropyLoss()
+        nn.init.xavier_uniform_(self.category_classifier.weight, gain=1)
 
         self.ner_dropout = nn.Dropout(config.classifier_dropout)
         self.ner_classifier = nn.Linear(bert_config.hidden_size, config.num_entities)
         self.ner_loss_fn = nn.CrossEntropyLoss()
+        nn.init.xavier_uniform_(self.ner_classifier.weight, gain=1)
 
     def forward(self, title_ids, attention_mask, token_type_ids, category_labels, ner_labels):
         outputs = self.bert_model(title_ids, attention_mask, token_type_ids)

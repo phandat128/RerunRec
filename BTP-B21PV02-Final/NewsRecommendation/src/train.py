@@ -1,6 +1,6 @@
 from torch.utils.data import DataLoader
 from torch.utils.tensorboard import SummaryWriter
-from dataset import BaseDataset
+from dataset import BaseDataset, MTRecDataset
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -102,6 +102,9 @@ def train():
             Model(config, pretrained_word_embedding).to(device)
             for _ in range(config.ensemble_factor)
         ])
+    elif model_name == 'MTRec':
+        aux_loss_scale = config.aux_loss_scale
+        model = Model(config).to(device)
     else:
         model = Model(config, pretrained_word_embedding).to(device)
 
@@ -110,8 +113,12 @@ def train():
     else:
         print(models[0])
 
-    dataset = BaseDataset('data/train/behaviors_parsed.tsv',
-                          'data/train/news_parsed.tsv')
+    if model_name == 'MTRec':
+        dataset = MTRecDataset('data/train/click_processed.tsv',
+                               'data/train/news_processed.tsv')
+    else:
+        dataset = BaseDataset('data/train/behaviors_parsed.tsv',
+                              'data/train/news_parsed.tsv')
 
     print(f"Load training dataset with size {len(dataset)}.")
 
@@ -124,8 +131,7 @@ def train():
                    pin_memory=True))
     if model_name != 'Exp1':
         criterion = nn.CrossEntropyLoss()
-        optimizer = torch.optim.Adam(model.parameters(),
-                                     lr=config.learning_rate)
+        optimizer = torch.optim.Adam(model.parameters(), lr=config.learning_rate)
     else:
         criterion = nn.NLLLoss()
         optimizers = [
@@ -161,7 +167,7 @@ def train():
     for i in tqdm(range(
             1,
             config.num_epochs * len(dataset) // config.batch_size + 1),
-                  desc="Training"):
+            desc="Training"):
         try:
             minibatch = next(dataloader)
         except StopIteration:
@@ -191,7 +197,10 @@ def train():
             minibatch = next(dataloader)
 
         step += 1
-        if model_name == 'LSTUR':
+        if model_name == 'MTRec':
+            y_pred, aux_loss = model(minibatch['candidate_news'],
+                                     minibatch['clicked_news'])
+        elif model_name == 'LSTUR':
             y_pred = model(minibatch["user"], minibatch["clicked_news_length"],
                            minibatch["candidate_news"],
                            minibatch["clicked_news"])
@@ -216,6 +225,9 @@ def train():
 
         y = torch.zeros(len(y_pred)).long().to(device)
         loss = criterion(y_pred, y)
+        if model_name == 'MTRec':
+            main_loss = loss
+            loss = main_loss + aux_loss * aux_loss_scale
 
         if model_name == 'HiFiArk':
             if i % 10 == 0:
@@ -280,12 +292,12 @@ def train():
                             'model_state_dict': (model if model_name != 'Exp1'
                                                  else models[0]).state_dict(),
                             'optimizer_state_dict':
-                            (optimizer if model_name != 'Exp1' else
-                             optimizers[0]).state_dict(),
+                                (optimizer if model_name != 'Exp1' else
+                                 optimizers[0]).state_dict(),
                             'step':
-                            step,
+                                step,
                             'early_stop_value':
-                            -val_auc
+                                -val_auc
                         }, f"./checkpoint/{model_name}/ckpt-{step}.pth")
                 except OSError as error:
                     print(f"OS error: {error}")

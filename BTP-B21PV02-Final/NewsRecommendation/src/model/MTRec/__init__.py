@@ -22,7 +22,7 @@ class MTRec(nn.Module):
                         {
                             "title_ids": batch_size * num_words_title,
                             "attention_mask": batch_size * num_words_title,
-                            "toke_type_ids": batch_size * num_words_title,
+                            "token_type_ids": batch_size * num_words_title,
                             "category_labels": batch_size,
                             "ner_labels": batch_size * num_words_title
                         } * (1 + K)
@@ -32,7 +32,7 @@ class MTRec(nn.Module):
                         {
                             "title_ids": batch_size * num_words_title,
                             "attention_mask": batch_size * num_words_title,
-                            "toke_type_ids": batch_size * num_words_title,
+                            "token_type_ids": batch_size * num_words_title,
                             "category_labels": batch_size,
                             "ner_labels": batch_size * num_words_title
                         } * num_clicked_news_a_user
@@ -67,7 +67,9 @@ class MTRec(nn.Module):
         # batch_size * (1 + K)
         click_probability = self.click_predictor(candidate_news_vectors, user_vector)
 
-        return click_probability
+        total_news = len(candidate_news) + len(clicked_news)
+
+        return click_probability, (overall_category_loss + overall_ner_loss) / total_news
 
     def get_news_vector(self, news):
         """
@@ -76,7 +78,7 @@ class MTRec(nn.Module):
                 {
                     "title_ids": batch_size * num_words_title,
                     "attention_mask": batch_size * num_words_title,
-                    "toke_type_ids": batch_size * num_words_title,
+                    "token_type_ids": batch_size * num_words_title,
                     "category_labels": batch_size,
                     "ner_labels": batch_size * num_words_title
                 }
