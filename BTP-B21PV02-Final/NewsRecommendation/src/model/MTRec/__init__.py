@@ -5,6 +5,8 @@ from .news_encoder import NewsEncoder
 from .user_encoder import UserEncoder
 from model.general.click_predictor.dot_product import DotProductClickPredictor
 
+device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+
 
 class MTRec(nn.Module):
     def __init__(self, config):
@@ -46,6 +48,7 @@ class MTRec(nn.Module):
         overall_ner_loss = 0.0
 
         for candidate in candidate_news:
+            candidate = {k: v.to(device) for k, v in candidate.items()}
             cls_outputs, category_loss, ner_loss = self.news_encoder(**candidate)
             overall_category_loss += category_loss
             overall_ner_loss += ner_loss
@@ -55,6 +58,7 @@ class MTRec(nn.Module):
         candidate_news_vectors = torch.stack(candidate_news_vectors, dim=1)
 
         for click in clicked_news:
+            click = {k: v.to(device) for k, v in click.items()}
             cls_outputs, category_loss, ner_loss = self.news_encoder(**click)
             overall_category_loss += category_loss
             overall_ner_loss += ner_loss
@@ -85,8 +89,9 @@ class MTRec(nn.Module):
         Returns:
             (shape) batch_size, hidden_size
         """
+        news = {k: v.to(device) for k, v in news.items()}
         # batch_size, hidden_size
-        return self.news_encoder(**news)
+        return self.news_encoder(**news)[0]
 
     def get_user_vector(self, clicked_news_vector):
         """
@@ -95,6 +100,7 @@ class MTRec(nn.Module):
         Returns:
             (shape) batch_size, word_embedding_dim
         """
+        clicked_news_vector = {k: v.to(device) for k, v in clicked_news_vector.items()}
         # batch_size, word_embedding_dim
         return self.user_encoder(clicked_news_vector)
 
@@ -106,6 +112,8 @@ class MTRec(nn.Module):
         Returns:
             click_probability: candidate_size
         """
+        news_vector = news_vector.to(device)
+        user_vector = user_vector.to(device)
         # candidate_size
         return self.click_predictor(
             news_vector.unsqueeze(dim=0),

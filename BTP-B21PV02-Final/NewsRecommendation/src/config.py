@@ -44,6 +44,7 @@ class MTRecConfig(BaseConfig):
         "news": ['title'],
         "record": []
     }
+    batch_size = 16
     learning_rate = 2e-5
     bert_model = 'bert-base-uncased'
     classifier_dropout = 0.2
