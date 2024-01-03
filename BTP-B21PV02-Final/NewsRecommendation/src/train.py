@@ -94,28 +94,10 @@ def train():
         except FileNotFoundError:
             pretrained_context_embedding = None
 
-        model = Model(config, pretrained_word_embedding,
-                      pretrained_entity_embedding,
-                      pretrained_context_embedding).to(device)
-    elif model_name == 'Exp1':
-        models = nn.ModuleList([
-            Model(config, pretrained_word_embedding).to(device)
-            for _ in range(config.ensemble_factor)
-        ])
-    elif model_name == 'MTRec':
-        aux_loss_scale = config.aux_loss_scale
-        model = Model(config).to(device)
-    else:
-        model = Model(config, pretrained_word_embedding).to(device)
-
-    if model_name != 'Exp1':
-        print(model)
-    else:
-        print(models[0])
-
+    print("Loading training dataset...")
     if model_name == 'MTRec':
-        dataset = MTRecDataset('src/data/train/click_processed.tsv',
-                               'src/data/train/news_processed.tsv')
+        dataset = MTRecDataset('data/train/click_process.tsv',
+                               'data/train/news_process.tsv')
     else:
         dataset = BaseDataset('data/train/behaviors_parsed.tsv',
                               'data/train/news_parsed.tsv')

@@ -5,7 +5,7 @@ model_name = os.environ['MODEL_NAME'] if 'MODEL_NAME' in os.environ else 'NRMS'
 assert model_name in [
     'NRMS', 'NAML', 'LSTUR', 'DKN', 'HiFiArk', 'TANR', 'Exp1', 'MTRec'
 ]
-
+model_name = 'MTRec'
 
 class BaseConfig:
     """
@@ -44,9 +44,10 @@ class MTRecConfig(BaseConfig):
         "news": ['title'],
         "record": []
     }
+    learning_rate = 2e-5
     bert_model = 'bert-base-uncased'
     classifier_dropout = 0.2
-    num_entities = 22
+    num_entities = 45
     negative_sampling_ratio = 4
     aux_loss_scale = 0.3
 
