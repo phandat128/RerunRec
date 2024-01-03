@@ -114,8 +114,8 @@ def train():
         print(models[0])
 
     if model_name == 'MTRec':
-        dataset = MTRecDataset('data/train/click_processed.tsv',
-                               'data/train/news_processed.tsv')
+        dataset = MTRecDataset('src/data/train/click_processed.tsv',
+                               'src/data/train/news_processed.tsv')
     else:
         dataset = BaseDataset('data/train/behaviors_parsed.tsv',
                               'data/train/news_parsed.tsv')
