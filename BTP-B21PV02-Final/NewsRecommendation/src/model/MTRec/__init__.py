@@ -100,7 +100,7 @@ class MTRec(nn.Module):
         Returns:
             (shape) batch_size, word_embedding_dim
         """
-        clicked_news_vector = {k: v.to(device) for k, v in clicked_news_vector.items()}
+        clicked_news_vector = clicked_news_vector.to(device)
         # batch_size, word_embedding_dim
         return self.user_encoder(clicked_news_vector)
 

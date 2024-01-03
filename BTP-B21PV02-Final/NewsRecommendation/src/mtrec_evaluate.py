@@ -62,7 +62,7 @@ class NewsDataset(Dataset):
         )
         self.news2dict = self.news_parsed.to_dict('index')
         for key1 in self.news2dict.keys():
-            for key2 in self.news2dict[key1].keys():
+            for key2 in self.news_attributes:
                 if type(self.news2dict[key1][key2]) != str:
                     self.news2dict[key1][key2] = torch.tensor(
                         self.news2dict[key1][key2])
@@ -192,11 +192,11 @@ def evaluate(model, directory, num_workers, max_count=sys.maxsize):
                           desc="Calculating vectors for news",
                           position=0, leave=True):
         news_ids = minibatch["news"]
-        if any(id not in news2vector for id in news_ids):
+        if any(str(id.item()) not in news2vector for id in news_ids):
             news_vector = model.get_news_vector(minibatch)
             for id, vector in zip(news_ids, news_vector):
                 if id not in news2vector:
-                    news2vector[id] = vector
+                    news2vector[str(id.item())] = vector
 
     news2vector['PADDED_NEWS'] = torch.zeros(
         list(news2vector.values())[0].size())
@@ -216,11 +216,13 @@ def evaluate(model, directory, num_workers, max_count=sys.maxsize):
                           position=0, leave=True):
         user_strings = minibatch["clicked_news_string"]
         if any(user_string not in user2vector for user_string in user_strings):
-            clicked_news_vector = torch.stack([
-                torch.stack([news2vector[x].to(device) for x in news_list],
-                            dim=0) for news_list in minibatch["clicked_news"]
-            ],
-                                              dim=0).transpose(0, 1)
+            clicked_news_vector = torch.stack(
+                [
+                    torch.stack([news2vector[x].to(device) for x in news_list], dim=0)
+                    for news_list in minibatch["clicked_news"]
+                ],
+                dim=0
+            ).transpose(0, 1)
             if model_name == 'LSTUR':
                 user_vector = model.get_user_vector(
                     minibatch['user'], minibatch['clicked_news_length'],
