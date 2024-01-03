@@ -22,7 +22,7 @@ class NewsEncoder(nn.Module):
         self.ner_loss_fn = nn.CrossEntropyLoss()
         nn.init.xavier_uniform_(self.ner_classifier.weight, gain=1)
 
-    def forward(self, title_ids, attention_mask, token_type_ids, category_labels, ner_labels):
+    def forward(self, title_ids, attention_mask, token_type_ids, category_labels, ner_labels, **kwargs):
         outputs = self.bert_model(title_ids, attention_mask, token_type_ids)
 
         cls_output = outputs[0][:, 0, :]
