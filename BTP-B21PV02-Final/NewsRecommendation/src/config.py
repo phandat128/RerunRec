@@ -5,7 +5,7 @@ model_name = os.environ['MODEL_NAME'] if 'MODEL_NAME' in os.environ else 'NRMS'
 assert model_name in [
     'NRMS', 'NAML', 'LSTUR', 'DKN', 'HiFiArk', 'TANR', 'Exp1', 'MTRec'
 ]
-model_name = 'MTRec'
+
 
 class BaseConfig:
     """
@@ -17,7 +17,7 @@ class BaseConfig:
     num_batches_validate = 1000
     batch_size = 128
     learning_rate = 0.0001
-    num_workers = 2  # Number of workers for data loading
+    num_workers = 4  # Number of workers for data loading
     num_clicked_news_a_user = 50  # Number of sampled click history for each user
     num_words_title = 20
     num_words_abstract = 50
