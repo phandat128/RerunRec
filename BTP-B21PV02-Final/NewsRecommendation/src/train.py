@@ -102,6 +102,9 @@ def train():
             Model(config, pretrained_word_embedding).to(device)
             for _ in range(config.ensemble_factor)
         ])
+    elif model_name == 'MTRec':
+        aux_loss_scale = config.aux_loss_scale
+        model = Model(config).to(device)
     else:
         model = Model(config, pretrained_word_embedding).to(device)
 
