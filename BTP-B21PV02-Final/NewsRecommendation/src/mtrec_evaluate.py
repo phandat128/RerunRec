@@ -292,7 +292,7 @@ if __name__ == '__main__':
 
     model.eval()
     auc, mrr, ndcg5, ndcg10 = evaluate(model, 'src/data/test',
-                                       config.num_workers)
+                                       num_workers=4)
     print(
         f'AUC: {auc:.4f}\nMRR: {mrr:.4f}\nnDCG@5: {ndcg5:.4f}\nnDCG@10: {ndcg10:.4f}'
     )
