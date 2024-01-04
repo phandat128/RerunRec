@@ -277,7 +277,7 @@ def train():
                     4, 200000)
             else:
                 val_auc, val_mrr, val_ndcg5, val_ndcg10 = evaluate(
-                    model if model_name != 'Exp1' else models[0], 'src/data/val',
+                    model if model_name != 'Exp1' else models[0], './data/val',
                     4, 200000)
             (model if model_name != 'Exp1' else models[0]).train()
             writer.add_scalar('Validation/AUC', val_auc, step)
