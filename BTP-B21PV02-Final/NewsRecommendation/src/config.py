@@ -54,7 +54,7 @@ class MTRecConfig(BaseConfig):
     negative_sampling_ratio = 4
     aux_loss_scale = 0.3
     # fastformer for user encoder? if False, use additive attention instead
-    fastformer = os.environ['fastformer'] if 'fastformer' in os.environ else False
+    fastformer = os.environ['fastformer'] == 'True' if 'fastformer' in os.environ else False
 
 
 class NRMSConfig(BaseConfig):
