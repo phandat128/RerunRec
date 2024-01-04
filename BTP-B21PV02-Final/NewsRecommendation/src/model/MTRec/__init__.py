@@ -3,6 +3,7 @@ import torch.nn as nn
 
 from .news_encoder import NewsEncoder
 from .user_encoder import UserEncoder
+from .fast_user_encoder import FastUserEncoder
 from model.general.click_predictor.dot_product import DotProductClickPredictor
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
@@ -13,7 +14,7 @@ class MTRec(nn.Module):
         super().__init__()
         self.config = config
         self.news_encoder = NewsEncoder(config)
-        self.user_encoder = UserEncoder(config)
+        self.user_encoder = FastUserEncoder(config) if config.fastformer else UserEncoder(config)
         self.click_predictor = DotProductClickPredictor()
 
     def forward(self, candidate_news, clicked_news):
