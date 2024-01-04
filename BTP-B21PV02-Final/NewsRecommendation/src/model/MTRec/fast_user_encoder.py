@@ -1,3 +1,4 @@
+import importlib
 import logging
 
 import torch
@@ -8,16 +9,16 @@ from transformers.models.bert.modeling_bert import BertSelfOutput, BertIntermedi
 
 
 class AttentionPooling(nn.Module):
-    def __init__(self, config):
-        self.config = config
+    def __init__(self, fastformer_config):
+        self.fastformer_config = fastformer_config
         super(AttentionPooling, self).__init__()
-        self.att_fc1 = nn.Linear(config.hidden_size, config.hidden_size)
-        self.att_fc2 = nn.Linear(config.hidden_size, 1)
+        self.att_fc1 = nn.Linear(fastformer_config.hidden_size, fastformer_config.hidden_size)
+        self.att_fc2 = nn.Linear(fastformer_config.hidden_size, 1)
         self.apply(self.init_weights)
 
     def init_weights(self, module):
         if isinstance(module, nn.Linear):
-            module.weight.data.normal_(mean=0.0, std=self.config.initializer_range)
+            module.weight.data.normal_(mean=0.0, std=self.fastformer_config.initializer_range)
         if isinstance(module, nn.Linear) and module.bias is not None:
             module.bias.data.zero_()
 
@@ -36,18 +37,18 @@ class AttentionPooling(nn.Module):
 
 
 class FastSelfAttention(nn.Module):
-    def __init__(self, config):
+    def __init__(self, fastformer_config):
         super(FastSelfAttention, self).__init__()
-        self.config = config
-        if config.hidden_size % config.num_attention_heads != 0:
+        self.fastformer_config = fastformer_config
+        if fastformer_config.hidden_size % fastformer_config.num_attention_heads != 0:
             raise ValueError(
                 "The hidden size (%d) is not a multiple of the number of attention "
                 "heads (%d)" %
-                (config.hidden_size, config.num_attention_heads))
-        self.attention_head_size = int(config.hidden_size / config.num_attention_heads)
-        self.num_attention_heads = config.num_attention_heads
+                (fastformer_config.hidden_size, fastformer_config.num_attention_heads))
+        self.attention_head_size = int(fastformer_config.hidden_size / fastformer_config.num_attention_heads)
+        self.num_attention_heads = fastformer_config.num_attention_heads
         self.all_head_size = self.num_attention_heads * self.attention_head_size
-        self.input_dim = config.hidden_size
+        self.input_dim = fastformer_config.hidden_size
 
         self.query = nn.Linear(self.input_dim, self.all_head_size)
         self.query_att = nn.Linear(self.all_head_size, self.num_attention_heads)
@@ -61,7 +62,7 @@ class FastSelfAttention(nn.Module):
 
     def init_weights(self, module):
         if isinstance(module, nn.Linear):
-            module.weight.data.normal_(mean=0.0, std=self.config.initializer_range)
+            module.weight.data.normal_(mean=0.0, std=self.fastformer_config.initializer_range)
         if isinstance(module, nn.Linear) and module.bias is not None:
             module.bias.data.zero_()
 
@@ -117,10 +118,10 @@ class FastSelfAttention(nn.Module):
 
 
 class FastAttention(nn.Module):
-    def __init__(self, config):
+    def __init__(self, fastformer_config):
         super(FastAttention, self).__init__()
-        self.self = FastSelfAttention(config)
-        self.output = BertSelfOutput(config)
+        self.self = FastSelfAttention(fastformer_config)
+        self.output = BertSelfOutput(fastformer_config)
 
     def forward(self, input_tensor, attention_mask):
         self_output = self.self(input_tensor, attention_mask)
@@ -129,11 +130,11 @@ class FastAttention(nn.Module):
 
 
 class FastformerLayer(nn.Module):
-    def __init__(self, config):
+    def __init__(self, fastformer_config):
         super(FastformerLayer, self).__init__()
-        self.attention = FastAttention(config)
-        self.intermediate = BertIntermediate(config)
-        self.output = BertOutput(config)
+        self.attention = FastAttention(fastformer_config)
+        self.intermediate = BertIntermediate(fastformer_config)
+        self.output = BertOutput(fastformer_config)
 
     def forward(self, hidden_states, attention_mask):
         attention_output = self.attention(hidden_states, attention_mask)
@@ -143,26 +144,25 @@ class FastformerLayer(nn.Module):
 
 
 class FastformerEncoder(nn.Module):
-    def __init__(self, config, pooler_count=1):
+    def __init__(self, fastformer_config, pooler_count=1):
         super(FastformerEncoder, self).__init__()
-        self.config = config
-        self.encoders = nn.ModuleList([FastformerLayer(config) for _ in range(config.num_hidden_layers)])
-        self.position_embeddings = nn.Embedding(config.max_position_embeddings, config.hidden_size)
-        self.LayerNorm = nn.LayerNorm(config.hidden_size, eps=config.layer_norm_eps)
-        self.dropout = nn.Dropout(config.hidden_dropout_prob)
+        self.fastformer_config = fastformer_config
+        self.encoders = nn.ModuleList([FastformerLayer(fastformer_config) for _ in range(fastformer_config.num_hidden_layers)])
+        self.LayerNorm = nn.LayerNorm(fastformer_config.hidden_size, eps=fastformer_config.layer_norm_eps)
+        self.dropout = nn.Dropout(fastformer_config.hidden_dropout_prob)
 
         # support multiple different poolers with shared bert encoder.
         self.poolers = nn.ModuleList()
-        if config.pooler_type == 'weightpooler':
+        if fastformer_config.pooler_type == 'weightpooler':
             for _ in range(pooler_count):
-                self.poolers.append(AttentionPooling(config))
+                self.poolers.append(AttentionPooling(fastformer_config))
         logging.info(f"This model has {len(self.poolers)} poolers.")
 
         self.apply(self.init_weights)
 
     def init_weights(self, module):
         if isinstance(module, (nn.Linear, nn.Embedding)):
-            module.weight.data.normal_(mean=0.0, std=self.config.initializer_range)
+            module.weight.data.normal_(mean=0.0, std=self.fastformer_config.initializer_range)
             if isinstance(module, (nn.Embedding)) and module.padding_idx is not None:
                 with torch.no_grad():
                     module.weight[module.padding_idx].fill_(0)
@@ -180,7 +180,7 @@ class FastformerEncoder(nn.Module):
         # attention_mask: batch_size, seq_len, emb_dim
 
         if attention_mask is None:
-            attention_mask = torch.ones(input_embs.size())
+            attention_mask = torch.ones(input_embs.shape[:1])
         extended_attention_mask = attention_mask.unsqueeze(1)
         extended_attention_mask = extended_attention_mask.to(dtype=next(self.parameters()).dtype)  # fp16 compatibility
         extended_attention_mask = (1.0 - extended_attention_mask) * -10000.0
@@ -195,7 +195,7 @@ class FastformerEncoder(nn.Module):
             layer_outputs = layer_module(all_hidden_states[-1], extended_attention_mask)
             all_hidden_states.append(layer_outputs)
         assert len(self.poolers) > pooler_index
-        output = self.poolers[pooler_index](all_hidden_states[-1], attention_mask)
+        output = self.poolers[pooler_index](all_hidden_states[-1])
 
         return output
 
@@ -204,7 +204,7 @@ class FastUserEncoder(nn.Module):
     def __init__(self, config):
         super().__init__()
         self.config = config
-        fastformer_config = BertConfig.from_json_file('fastformer.json')
+        fastformer_config = BertConfig.from_json_file('model/MTRec/fastformer.json')
         fastformer_config.pooler_type = 'weightpooler'
         self.attention = FastformerEncoder(fastformer_config)
 
