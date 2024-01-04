@@ -180,7 +180,7 @@ class FastformerEncoder(nn.Module):
         # attention_mask: batch_size, seq_len, emb_dim
 
         if attention_mask is None:
-            attention_mask = torch.ones(input_embs.shape[:1])
+            attention_mask = torch.ones(input_embs.shape[:2]).to(input_embs.device)
         extended_attention_mask = attention_mask.unsqueeze(1)
         extended_attention_mask = extended_attention_mask.to(dtype=next(self.parameters()).dtype)  # fp16 compatibility
         extended_attention_mask = (1.0 - extended_attention_mask) * -10000.0
