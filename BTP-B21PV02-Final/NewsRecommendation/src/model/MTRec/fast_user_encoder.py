@@ -204,7 +204,7 @@ class FastUserEncoder(nn.Module):
     def __init__(self, config):
         super().__init__()
         self.config = config
-        fastformer_config = BertConfig.from_json_file('model/MTRec/fastformer.json')
+        fastformer_config = BertConfig.from_json_file('src/model/MTRec/fastformer.json')
         fastformer_config.pooler_type = 'weightpooler'
         self.attention = FastformerEncoder(fastformer_config)
 
