@@ -44,7 +44,7 @@ class MTRecConfig(BaseConfig):
         "news": ['title'],
         "record": []
     }
-    num_epochs = 1
+    num_epochs = 2
     num_batches_validate = 4000
     batch_size = 16
     learning_rate = 2e-5

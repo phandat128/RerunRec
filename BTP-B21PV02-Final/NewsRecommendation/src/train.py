@@ -167,7 +167,7 @@ def train():
                 optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
 
     for i in tqdm(range(
-            1,
+            step + 1,
             config.num_epochs * len(dataset) // config.batch_size + 1),
             desc="Training"):
         try:
