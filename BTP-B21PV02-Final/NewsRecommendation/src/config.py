@@ -60,6 +60,7 @@ class MTRecConfig(BaseConfig):
 class NRMSConfig(BaseConfig):
     dataset_attributes = {"news": ['title'], "record": []}
     # For multi-head self-attention
+    num_epochs = 4
     num_attention_heads = 15
 
 
@@ -68,6 +69,7 @@ class NAMLConfig(BaseConfig):
         "news": ['category', 'subcategory', 'title', 'abstract'],
         "record": []
     }
+    num_epochs = 4
     # For CNN
     num_filters = 300
     window_size = 3
