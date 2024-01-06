@@ -168,7 +168,7 @@ def train():
 
     for i in tqdm(range(
             step + 1,
-            config.num_epochs * len(dataset) // config.batch_size + 1),
+            config.num_epochs * (len(dataset) // config.batch_size) + 1),
             desc="Training"):
         try:
             minibatch = next(dataloader)
